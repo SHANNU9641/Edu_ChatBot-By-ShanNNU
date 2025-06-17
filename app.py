@@ -1,11 +1,12 @@
-from flask_cors import CORS
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 import requests
+import os
 
 app = Flask(__name__)
 CORS(app)
 
-TOGETHER_API_KEY = "8a5404da53371b1d283c57d291a9e1231ac506480dcd83eb77a7e39028e95e64"
+TOGETHER_API_KEY = os.environ.get("TOGETHER_API_KEY")  # Now uses environment variable
 TOGETHER_MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 
 @app.route("/")
@@ -34,27 +35,5 @@ def ask():
     return jsonify({"response": reply.strip()})
 
 if __name__ == "__main__":
-    app.run(debug=True)
-
-
-from werkzeug.utils import secure_filename
-import os
-
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
-@app.route("/upload", methods=["POST"])
-def upload():
-    if "file" not in request.files:
-        return jsonify({"response": "⚠️ No file uploaded."})
-    file = request.files["file"]
-    if file.filename == "":
-        return jsonify({"response": "⚠️ Empty filename."})
-
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-    file.save(filepath)
-
-    # Simulate summary for now
-    return jsonify({"response": f"📄 Received '{filename}' and processing..."})
+    port = int(os.environ.get("PORT", 10000))  # Use Render's assigned port
+    app.run(host="0.0.0.0", port=port)
